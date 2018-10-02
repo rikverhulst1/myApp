@@ -1,0 +1,43 @@
+{
+	"charts": [
+	{
+		"type": "line",
+		"attribute": "customMetrics%2F%5CLogicalDisk(_Total)%5CDisk%20Transfers%2Fsec",
+		"aggregation": "sum",
+		"title": "totaal aantal schijftransfers per seconde",
+		"threshold": {
+			"value": 350,
+			"isMax": true,
+			"isPercent": false
+		}
+	}, {
+        "type": "bar",
+        "attribute": "users/count",
+        "aggregation": "unique",
+		"title": "aantal unieke gebruikers",
+		"threshold": {
+			"value": 0.5,
+			"isMax": true,
+			"isPercent": false
+		}
+	}, {
+		"type": "pie",
+		"attribute": "pageViews",
+		"query": "summarize count() by client_CountryOrRegion",
+		"title": "paginaweergaven per land"
+	}, {
+		"type": "text",
+		"attribute": "exceptions",
+		"query": "summarize count() by type",
+		"title": "aantal exceptions"
+	}
+	],
+	"options": {
+        "appId": "d99d33d3-8424-4510-b2df-972c70409e15",
+        "apiKey": "yxgrgrlhurvrmfwa54da4e5n83qia0sq0eamf3r4",
+		"timespanMinutes": 10,
+        "intervalMinutes": 1,
+        "timeFormat": "DD-MM-YYYY HH:mm:ss.SSS",
+		"viewChartsBackgroundColor": "rgb(209, 223, 255)"
+	}
+}

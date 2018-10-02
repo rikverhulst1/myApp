@@ -1,15 +1,28 @@
-.ios, .md {
+page-about {
 
-    page-about {
+    .scroll-content {
+        background-color: map-get($colors, light);
+        overflow-y: auto !important;
+    }
 
-        .scroll-content {
-            background-color: map-get($colors, light);
-        }
-
-        ion-card-header {
-            font-weight: bold;
-        }
+    ion-card-header {
+        font-weight: bold;
+    }
+    .col {
+        padding: 2px;
+        border: 0px;
+        margin: 0px;
+    }
+    .grid {
+        padding: 1px;
+    }
+    canvas {
+        min-width: 100%;
+        min-height: 100%;
     }
 }
+
+
+
 
 

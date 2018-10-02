@@ -1,0 +1,81 @@
+<!--
+  <ion-header>
+  <ion-navbar color="danger">
+    <ion-title>
+      <ion-row>
+          <ion-col style="text-align: start; font-size: 12pt">20 september 2018</ion-col>
+          <ion-col style="text-align: center">Telemetrie - afgelopen 12 uur</ion-col>
+          <ion-col style="text-align: end; font-size: 12pt">12:00:00</ion-col>
+      </ion-row>
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+-->
+<ion-content inset>
+  <ion-grid>
+    <!--row 1-->
+    <ion-row>
+      <ion-col col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 *ngFor="let nmb of numberOfCharts; let i = index">
+          <canvas id= {{i}} ></canvas>
+      </ion-col>
+      <!--
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-2>
+          <canvas id="0"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-2>
+          <canvas id="1"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-2>
+          <canvas id="2"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-2>
+          <canvas id="3"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-2>
+          <canvas id="4"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-2>
+          <canvas id="5"></canvas>
+        </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-3>
+        <canvas id="6"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-3>
+        <canvas id="7"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-3>
+        <canvas id="8"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-3>
+          <canvas id="9"></canvas>
+        </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-3>
+        <canvas id="10"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-3>
+        <canvas id="11"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-3>
+        <canvas id="12"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-3>
+          <canvas id="13"></canvas>
+        </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-3>
+        <canvas id="14"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-3>
+          <canvas id="15"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-3>
+        <canvas id="16"></canvas>
+      </ion-col>
+      <ion-col col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-3>
+        <canvas id="17"></canvas>
+      </ion-col>
+      -->
+    </ion-row>
+  </ion-grid>
+
+</ion-content>
+

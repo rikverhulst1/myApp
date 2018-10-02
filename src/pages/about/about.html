@@ -1,32 +1,25 @@
-
+<!--
+  <ion-header>
+  <ion-navbar color="danger">
+    <ion-title>
+      <ion-row>
+          <ion-col style="text-align: start; font-size: 12pt">20 september 2018</ion-col>
+          <ion-col style="text-align: center">Telemetrie - afgelopen 12 uur</ion-col>
+          <ion-col style="text-align: end; font-size: 12pt">12:00:00</ion-col>
+      </ion-row>
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+-->
 <ion-content inset>
-  <ion-grid>
-    <ion-row>
-      <ion-col>
-        <canvas id="lineChart1"></canvas>
-      </ion-col>
-      <ion-col>
-        <canvas id="lineChart2"></canvas>
-      </ion-col>
-      <ion-col>
-        <canvas id="lineChart3"></canvas>
-      </ion-col>
-      <ion-col>
-          <canvas id="lineChart4"></canvas>
-        </ion-col>
-    </ion-row>
-    <ion-row>
-      <ion-col>
-        <canvas id="barChart1"></canvas>
-      </ion-col>
-      <ion-col>
-      </ion-col>
-      <ion-col>
-      </ion-col>
-      <ion-col>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-
-</ion-content>
-
+        <ion-grid>
+          <ion-row ng-repeat="options in jsonInputFile.options">
+            <ion-col col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-3 *ngFor="let chart of jsonInputFile.charts; let i = index">
+              <canvas id= {{i}} ></canvas>
+          </ion-col>
+          </ion-row>
+        </ion-grid>
+      
+      </ion-content>
+      
+      
