@@ -14,8 +14,10 @@
 <ion-content inset>
         <ion-grid>
           <ion-row ng-repeat="options in jsonInputFile.options">
-            <ion-col col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-3 *ngFor="let chart of jsonInputFile.charts; let i = index">
-              <canvas id= {{i}} ></canvas>
+            <ion-col id="canvasColumn" col-xs-6 col-sm-6 col-md-4 col-lg-3 col-xl-3 *ngFor="let chart of jsonInputFile.charts; let i = index">
+              <div padding id="spinnerDiv"><ion-spinner class="spinner"></ion-spinner>
+              </div>
+              <canvas class="canvas" id= {{i}} ></canvas>
           </ion-col>
           </ion-row>
         </ion-grid>

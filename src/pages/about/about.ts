@@ -16,23 +16,25 @@ export class AboutPage {
     tabBarElement: any;
     jsonInputFile;
     charts = [];
+    spinners = [];
     constructor(private http: HttpClient, public navCtrl: NavController, public loadingCtrl: LoadingController){
         this.tabBarElement = document.querySelector('.tabbar');
     }
     //loadingcontroller to show when page loads
     loading = this.loadingCtrl.create({
-        content: 'bezig met laden'
+        content: 'configuratiebestand zoeken en controleren'
     });
 
     async ionViewCanEnter() {
         this.tabBarElement.style.display = 'none';
         this.loading.present();
         await this.getFile("assets/data/chartsConfig.json").then(data => this.jsonInputFile = data);
+        await this.checkEmptyJsonObjects();
+        this.loading.dismiss();
     }
 
     async ionViewDidLoad() {
         await this.createUpdateCharts();
-        this.loading.dismiss();
         this.setRefresher(this.jsonInputFile.options.intervalMinutes);
     }
 
@@ -41,10 +43,8 @@ export class AboutPage {
     }
 
     setRefresher(timeMin : number) {
-        setTimeout(() => {
-            console.log("refreshing...");
-            this.createUpdateCharts();
-            console.log("refreshed");
+        setTimeout(async () => {
+            await this.createUpdateCharts();
             return this.setRefresher(timeMin);
         }, (timeMin*60000))
     };
@@ -61,6 +61,33 @@ export class AboutPage {
                 }
             );
         });
+    }
+
+    async checkEmptyJsonObjects() {
+        var defaults = await this.getFile("assets/data/chartsConfigDefaults.json");
+        for (var i = 0; i < this.jsonInputFile.charts.length; i++) {
+            // defaults.chart.forEach(function (key, value) {
+            //     if (!(this.jsonInputFile.charts[i].hasOwnProperty(key))) {
+            //         this.jsonInputFile.charts[i][key] = value;
+            //     }
+            // })
+            if (this.jsonInputFile.charts[i].type == null) { this.jsonInputFile.charts[i].type = defaults.chart.type;}
+            if (this.jsonInputFile.charts[i].title == null) { this.jsonInputFile.charts[i].title = defaults.chart.title;} 
+            if (this.jsonInputFile.charts[i].threshold != null) {
+                if (this.jsonInputFile.charts[i].threshold.isMax == null) { this.jsonInputFile.charts[i].threshold.isMax = defaults.chart.threshold.isMax;}
+                if (this.jsonInputFile.charts[i].threshold.isPercent == null) { this.jsonInputFile.charts[i].threshold.isPercent = defaults.chart.threshold.isPercent;}
+            }
+        }
+        if (this.jsonInputFile.options.appId == null) { this.jsonInputFile.options.appId = defaults.options.appId;}
+        if (this.jsonInputFile.options.apiKey == null) { this.jsonInputFile.options.apiKey = defaults.options.apiKey;}
+        if (this.jsonInputFile.options.timespanDays == null) { this.jsonInputFile.options.timespanDays = defaults.options.timespanDays;}
+        if (this.jsonInputFile.options.intervalMinutes == null) { this.jsonInputFile.options.intervalMinutes = defaults.options.intervalMinutes;}
+        if (this.jsonInputFile.options.timeFormat == null) { this.jsonInputFile.options.timeFormat = defaults.options.timeFormat;}
+        if (this.jsonInputFile.options.canvasDefaultBackgroundColor == null) { this.jsonInputFile.options.canvasDefaultBackgroundColor = defaults.options.canvasDefaultBackgroundColor;}
+        if (this.jsonInputFile.options.canvasWarningBackgroundColor == null) { this.jsonInputFile.options.canvasWarningBackgroundColor = defaults.options.canvasWarningBackgroundColor;}
+        if (this.jsonInputFile.options.canvasCriticalBackgroundColor == null) { this.jsonInputFile.options.canvasCriticalBackgroundColor = defaults.options.canvasCriticalBackgroundColor;}
+        if (this.jsonInputFile.options.canvasEmptyBackgroundColor == null) { this.jsonInputFile.options.canvasEmptyBackgroundColor = defaults.options.canvasEmptyBackgroundColor;}
+        if (this.jsonInputFile.options.canvasDefaultFontColor == null) { this.jsonInputFile.options.canvasDefaultFontColor = defaults.options.canvasDefaultFontColor;}
     }
 
     async createUpdateCharts() {
@@ -85,27 +112,41 @@ export class AboutPage {
                         ctx.restore();
                     }
                 }
+
             });
+            Chart.defaults.global.defaultFontColor=this.jsonInputFile.options.canvasDefaultFontColor;
+
+            for (var j = 0; j < this.jsonInputFile.charts.length; j++) {
+                var canvas = <HTMLCanvasElement> document.getElementById(String(j));
+                canvas.style.backgroundColor = this.jsonInputFile.options.canvasDefaultBackgroundColor;
+            }
         }
         for (var i = 0; i < this.jsonInputFile.charts.length; i++) {
+            var canvas = <HTMLCanvasElement> document.getElementById(String(i));
+            canvas.style.padding = "2px";
+            canvas.style.border = "0px";
+            canvas.style.margin = "0px";
+            var spinnerDiv = document.getElementById(String(i)).previousElementSibling as HTMLElement;
+            spinnerDiv.style.zIndex = "1";
+            var spinner = document.getElementById(String(i)).previousElementSibling.firstChild as HTMLElement;
+            spinner.style.display = "initial";
             var chart = this.jsonInputFile.charts[i];
             var url = 'https://api.applicationinsights.io/v1/apps/'+this.jsonInputFile.options.appId
             
             if (chart.aggregation != null && (chart.type == "line" || chart.type == "bar")) {
-                url += '/metrics/'+chart.attribute+"?interval=PT"+this.jsonInputFile.options.intervalMinutes+"M&timespan=PT"+this.jsonInputFile.options.timespanMinutes+"M&aggregation="+chart.aggregation;
+                url += '/metrics/'+chart.attribute+"?interval=PT"+this.jsonInputFile.options.intervalMinutes+"M&timespan=P"+this.jsonInputFile.options.timespanDays+"D&aggregation="+chart.aggregation;
             } else if (chart.type == "pie" || chart.type == "doughnut" || chart.type == "text") {
-                url += '/query?query='+chart.attribute+" | where timestamp > ago("+this.jsonInputFile.options.timespanMinutes+"m)"+" | "+chart.query;
+                var hours = this.jsonInputFile.options.timespanDays * 24;
+                url += '/query?query='+chart.attribute+" | where timestamp > ago("+hours+"h)"+" | "+chart.query;
             }
             var responseData;
             await this.getFile(url, httpOptions).then(data => responseData = data);
-            document.getElementById(String(i)).style.backgroundColor = this.jsonInputFile.options.viewChartsBackgroundColor;
             
             //if chart is line or bar, get or update this chart
             if (chart.type == "line" || chart.type == "bar") {
                 var output = [];
                 var rows = responseData.value.segments;
                 rows.forEach(function (row) {
-                    console.log(row.Index);
                     let coordinates = {"x": new Date(row.end), "y": row[decodeURIComponent(chart.attribute)][chart.aggregation]};
                     output.push(coordinates);
                 })
@@ -120,9 +161,8 @@ export class AboutPage {
                         yAxisID: 'value'
                     },
                     options: {
-                        maintainAspectRatio: false,
+                        //maintainAspectRatio: false,
                         animation: false,
-                        backgroundColor: 'rgb(133, 171, 255)',
                         responsive: true,
                         title: {
                             display: true,
@@ -135,7 +175,7 @@ export class AboutPage {
                             }
                         },
                         legend: {
-                           display: false 
+                           display: false
                         },
                         scales: {
                             xAxes: [{
@@ -169,6 +209,7 @@ export class AboutPage {
                     }
                 }
                 if (chart.type == "line") {
+                    //lineTension to unsmooth lines
                     chartConfig.data.datasets = [{borderColor: "blue", fill: false, lineTension: 0}];
                 } else if (chart.type == "bar") {
                     chartConfig.data.datasets = [{backgroundColor: "blue"}];
@@ -191,8 +232,9 @@ export class AboutPage {
                     annotations: [
                         //red colored box above/under threshold
                         {
-                            backgroundColor: 'rgba(255, 0, 0, 0.3)',
-                            borderColor: 'rgba(255, 0, 0, 0.3)',
+                            drawTime: 'beforeDatasetsDraw',
+                            backgroundColor: 'rgb(255, 122, 122)',
+                            borderColor: 'rgb(255, 122, 122)',
                             fill: false,
                             type: 'box',
                             xScaleID: 'x-axis-0',
@@ -201,8 +243,9 @@ export class AboutPage {
                         },
                         //green colored box under/above threshold
                         {
-                          backgroundColor: 'rgba(13, 255, 0, 0.3)',
-                          borderColor: 'rgba(13, 255, 0, 0.3)',
+                          drawTime: 'beforeDatasetsDraw',
+                          backgroundColor: 'rgb(126, 255, 121)',
+                          borderColor: 'rgb(126, 255, 121)',
                           fill: false,
                           type: 'box',
                           xScaleID: 'x-axis-0',
@@ -246,8 +289,9 @@ export class AboutPage {
                     this.charts[i].chart.options.scales.yAxes[0].ticks.suggestedMax = maxValueYAxis + 5;
                 }
                 this.charts[i].chart.options.annotation.annotations.push({
-                    borderColor: 'red',
-                    borderDash: [2, 2],
+                    drawTime: 'beforeDatasetsDraw',
+                    borderColor: 'rgb(255, 0, 0)',
+                    borderDash: [10, 10],
                     borderWidth: 2,
                     mode: 'horizontal',
                     scaleID: 'y-axis-0',
@@ -257,12 +301,18 @@ export class AboutPage {
                 });
                     //}
                     this.charts[i].chart.options.scales.xAxes[0].ticks.suggestedMin = this.charts[i].chart.data.datasets[0].data[0].x;
-                    await this.charts[i].chart.update(); 
+                    await this.charts[i].chart.update();
                 }
                 //remove visible threshold if chartdata is empty
                 else if ((chart.hasOwnProperty('threshold')) && "annotation" in this.charts[i].chart.options && this.charts[i].chart.data.datasets[0].data.length < 1) {
                 delete this.charts[i].chart.options.annotation;
                 await this.charts[i].chart.update();
+            }
+            if (output.length < 1) {
+                canvas.style.backgroundColor = this.jsonInputFile.options.canvasEmptyBackgroundColor;
+            }
+            if (chart.threshold != null && this.charts[i].chart.options.annotation != null && this.charts[i].chart.data.datasets[0].data != null) {
+                this.checkThresholds(i);
             }
             //if chart is pie or doughnut, update this chart
             } else if (chart.type == "pie" || chart.type == "doughnut") {
@@ -294,9 +344,8 @@ export class AboutPage {
                             labels: labels,
                         },
                         options : {
-                            maintainAspectRatio: false,
+                            //maintainAspectRatio: false,
                             animation: false,
-                            backgroundColor: 'rgb(133, 171, 255)',
                             title: {
                                 display: true,
                                 text: [chart.title, "totaal: " + totalValues]
@@ -309,7 +358,6 @@ export class AboutPage {
                                     render: 'value',
                                     position: 'border',
                                     textShadow: true,
-                                    fontColor: '#000000',
                                     shadowColor: 'rgba(255, 255, 255, 1)',
                                     shadowOffsetX: 0,
                                     shadowOffsetY: 0,
@@ -335,6 +383,9 @@ export class AboutPage {
                     this.charts[i].chart.options.title.text[1] = "totaal: "+totalValues;
                     await this.charts[i].chart.update();
                 }
+                if (labels.length < 1 && values.length < 1) {
+                    canvas.style.backgroundColor = this.jsonInputFile.options.canvasEmptyBackgroundColor;
+                }
             }
             } else if (chart.type == "text") {
                 var output = [];
@@ -344,31 +395,42 @@ export class AboutPage {
                     output.push({label: row[0], value: row[1]});
                     totalValues += row[1];
                 });
-                var canvas = <HTMLCanvasElement> document.getElementById(String(i));
-                var bcr = canvas.getBoundingClientRect();
-                var ctx = canvas.getContext("2d");
+                var bcr;
+                var ctx;
+                if (this.charts[i] == null) {
+                bcr = canvas.getBoundingClientRect();
+                ctx = canvas.getContext("2d");
+
                 canvas.style.width = "100%";
                 canvas.style.height = "100%";
                 canvas.width = bcr.width;
                 canvas.height = bcr.height;
                 canvas.style.display = "block";
-                canvas.style.backgroundColor = this.jsonInputFile.options.viewChartsBackgroundColor;
+                } else {
+                canvas = this.charts[i].canvas;
+                bcr = this.charts[i].bcr;
+                ctx = this.charts[i].ctx;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
                 ctx.textAlign = "center";
+                ctx.textBaseline="top";
                 ctx.font = "bold 13px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";
-                ctx.fillStyle = "rgb(102, 102, 102)";
-                ctx.fillText(chart.title, (canvas.width / 2), 20);
-                ctx.fillText("totaal: " + totalValues, (canvas.width / 2), 35);
+                ctx.fillStyle = "#000000";
+                ctx.fillText(chart.title, (canvas.width / 2), 8);
+                ctx.fillText("totaal: " + totalValues, (canvas.width / 2), 23);
                 if (output.length < 1) {
                     ctx.textBaseline = 'middle';
                     ctx.fillText("Geen data", (canvas.width / 2), (canvas.height / 2));
+                    canvas.style.backgroundColor = this.jsonInputFile.options.canvasEmptyBackgroundColor;
                 } else {
+                    canvas.style.backgroundColor = this.jsonInputFile.options.canvasDefaultBackgroundColor;
                     ctx.font = "14px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";
-                    var startTextline = 55;
+                    var startTextline = 40;
                     for (var j = 0; j < output.length; j++) {
                         var line = startTextline + (j*20);
-                        if (line >= (canvas.height - 15)) {
+                        if (line >= (canvas.height - 25)) {
                             ctx.textAlign = "center";
-                            ctx.fillText("... (nog " + (output.length - (j+1)) + " resterend", (canvas.width / 2), line);
+                            ctx.fillText("... (nog " + (output.length - (j+1)) + " resterend)", (canvas.width / 2), (canvas.height - 25));
                             j = output.length;
                         } else {
                             ctx.textAlign = "left";
@@ -378,8 +440,61 @@ export class AboutPage {
                         }
                     }
                 }
+                if (this.charts[i] == null) {
+                    var chart: any = {
+                        config : {
+                            type: chart.type
+                        },
+                        data: rows,
+                        dataValuesSum: totalValues,
+                        canvas: canvas,
+                        bcr: bcr,
+                        ctx: ctx
+                    }
+                    this.charts.push(chart);
+                }
             }
+        spinnerDiv.style.zIndex = "-1";
+        spinner.style.display = "none";
         }
         return;
+    }
+    checkThresholds(chartInt : number) {
+            var chartFromConfig = this.jsonInputFile.charts[chartInt];
+            var createdChart = this.charts[chartInt];
+            var canvasStyle = document.getElementById(String(chartInt)).style;
+            var inputOptions = this.jsonInputFile.options;
+                //if ((createdChart.config.type == "line" || createdChart.config.type == "bar") && chartFromConfig.threshold != null && createdChart.config.options.annotation != null && createdChart.config.data.datasets[0].data != null) {
+                    var thValue = chartFromConfig.threshold.value;
+                    var thIsMax = chartFromConfig.threshold.isMax;
+                    //check for each segment in chartdata whether the values (almost) passes threshold
+                    canvasStyle.backgroundColor = inputOptions.canvasDefaultBackgroundColor;
+                    createdChart.config.data.datasets[0].data.forEach(function (datasegment, index) {
+                        //if y value of segment passes threshold -10% (when isMax) or +10% (when isn't isMax)
+                        if ((thIsMax && datasegment.y >= (thValue - (thValue * 0.1))) || (!thIsMax && datasegment.y <= (thValue + (thValue * 0.1)))) {
+                            if (((thIsMax && datasegment.y > thValue) || (!thIsMax && datasegment.y < thValue))) {
+                                //chartcolor will set to critical if it isn't already this color
+                                if (canvasStyle.backgroundColor != inputOptions.canvasCriticalBackgroundColor) {
+                                    canvasStyle.backgroundColor = inputOptions.canvasCriticalBackgroundColor;
+                                }
+                                if (index == (createdChart.config.data.datasets[0].data.length - 1) && canvasStyle.backgroundColor != inputOptions.canvasRecentCriticalBackgroundColor) {
+                                    canvasStyle.backgroundColor = inputOptions.canvasRecentCriticalBackgroundColor;
+                                    console.log("Last value in chart " + chartInt + " passed threshold!!");
+                                    //warn user that last value almost passes threshold
+                                }
+                            } else {
+                                //chartcolor will set to warning if it isn't already this color or it isn't color 
+                                if (canvasStyle.backgroundColor != inputOptions.canvasCriticalBackgroundColor && canvasStyle.backgroundColor != inputOptions.canvasRecentCriticalBackgroundColor && canvasStyle.backgroundColor != inputOptions.canvasWarningBackgroundColor) {
+                                    canvasStyle.backgroundColor = inputOptions.canvasWarningBackgroundColor;
+                                }
+                                if (index == (createdChart.config.data.datasets[0].data.length - 1) && canvasStyle.backgroundColor != inputOptions.canvasRecentWarningBackgroundColor) {
+                                    console.log("Last value in chart " + chartInt + " almost has passed threshold!!");
+                                    canvasStyle.backgroundColor = inputOptions.canvasRecentWarningBackgroundColor;
+                                    //warn user that last value passes threshold
+                                }
+                            }
+                        }
+                    });
+        //}
     }
 }

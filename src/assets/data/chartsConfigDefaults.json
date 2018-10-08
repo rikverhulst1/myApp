@@ -1,0 +1,25 @@
+{
+	"chart": {
+		"type": "line",
+		"title": "new chart",
+		"threshold": {
+			"isMax": true,
+			"isPercent": false
+		}
+	},
+	"options": {
+        "appId": "DEMO_APP",
+        "apiKey": "DEMO_KEY",
+		"timespanDays": 0.5,
+        "intervalMinutes": 10,
+        "timeFormat": "DD-MM-YYYY HH:mm:ss.SSS",
+		"viewChartsBackgroundColor": "rgb(209, 223, 255)",
+		"canvasDefaultBackgroundColor": "rgb(255, 255, 255)",
+		"canvasWarningBackgroundColor": "rgb(255, 187, 50)",
+		"canvasCriticalBackgroundColor": "rgb(255, 0, 0)",
+		"canvasRecentWarningBackgroundColor": "rgb(255, 187, 50)",
+		"canvasRecentCriticalBackgroundColor": "rgb(255, 0, 0)",
+		"canvasEmptyBackgroundColor": "rgb(190, 190, 190)",
+		"canvasDefaultFontColor": "#666"
+	}
+}

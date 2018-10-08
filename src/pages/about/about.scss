@@ -8,17 +8,29 @@ page-about {
     ion-card-header {
         font-weight: bold;
     }
-    .col {
-        padding: 2px;
-        border: 0px;
-        margin: 0px;
-    }
     .grid {
         padding: 1px;
     }
-    canvas {
+    #spinnerDiv {
+        z-index: 1;
         min-width: 100%;
         min-height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        position: absolute;
+        display: block;
+        padding: 0px;
+        border: 2px;
+        margin: 0px;
+    }
+    .spinner {
+        width: 60px;
+        height: 60px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-right: -50%;
+        transform: translate(-50%, -50%);
     }
 }
 
